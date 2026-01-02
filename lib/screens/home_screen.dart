@@ -5,9 +5,10 @@ import '../models/event_model.dart';
 import '../models/category_model.dart';
 import '../services/event_service.dart';
 import '../widgets/event_card.dart';
-import '../widgets/bottom_nav_bar.dart'; // Import the new BottomNavBar
+import '../widgets/bottom_nav_bar.dart';
 import 'event_detail_screen.dart';
 import 'registration_screen.dart';
+import 'create_event_screen.dart'; // <--- 1. IMPORT ADDED
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -55,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  // --- DATA FETCHING (Same logic as before) ---
+  // --- DATA FETCHING ---
   Future<void> _initData() async {
     setState(() => _isLoading = true);
     final cats = await _eventService.getCategories();
@@ -141,7 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // --- BUILDERS FOR TABS ---
 
-  // Tab 0: Home Feed (Your original HomeScreen content)
+  // Tab 0: Home Feed
   Widget _buildHomeFeed() {
     return Column(
       children: [
@@ -177,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
             backgroundColor: Colors.white,
             child: ListView.builder(
               controller: _scrollController,
-              padding: const EdgeInsets.only(top: 10, bottom: 100), // Add bottom padding for NavBar
+              padding: const EdgeInsets.only(top: 10, bottom: 100), // Padding for BottomNav
               itemCount: _events.length + (_isLoadingMore ? 1 : 0),
               itemBuilder: (context, index) {
                 if (index == _events.length) {
@@ -206,22 +207,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Tab 1: Create Event Placeholder
-  Widget _buildCreateEvent() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.add_circle_outline, size: 80, color: Color(0xFF6366F1)),
-          SizedBox(height: 16),
-          Text("Create Event", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-          SizedBox(height: 8),
-          Text("Feature coming soon...", style: TextStyle(color: Colors.grey)),
-        ],
-      ),
-    );
-  }
-
   // Tab 2: My Registrations Placeholder
   Widget _buildMyRegistrations() {
     return const Center(
@@ -242,24 +227,26 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF111827),
-      // Use IndexedStack to keep the state of the Home Feed (scroll position, etc.) alive
       body: SafeArea(
         bottom: false,
         child: IndexedStack(
           index: _currentTabIndex,
           children: [
-            _buildHomeFeed(),         // Index 0
-            _buildCreateEvent(),      // Index 1
-            _buildMyRegistrations(),  // Index 2
+            _buildHomeFeed(),             // Index 0
+            const CreateEventScreen(),    // Index 1: <--- 2. WIRED UP HERE
+            _buildMyRegistrations(),      // Index 2
           ],
         ),
       ),
-      // Integrate the Custom Bottom Nav Bar
       bottomNavigationBar: BottomNavBar(
         currentIndex: _currentTabIndex,
         onTap: (index) {
           setState(() {
             _currentTabIndex = index;
+            // Optional: Refresh Home when tapping Home tab
+            if (index == 0) {
+              _refreshEvents();
+            }
           });
         },
       ),

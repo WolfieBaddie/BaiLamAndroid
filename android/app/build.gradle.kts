@@ -40,6 +40,12 @@ android {
     ndkVersion = "29.0.13599879"
 }
 
+configurations.all {
+    resolutionStrategy {
+        force("androidx.activity:activity:1.10.1")
+    }
+}
+
 flutter {
     source = "../.."
 }

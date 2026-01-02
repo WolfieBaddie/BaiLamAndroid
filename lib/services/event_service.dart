@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../config/constants.dart';
+import '../dto/create_event_request.dart';
 import '../models/event_model.dart';
 import '../models/category_model.dart';
 
@@ -97,6 +99,74 @@ class EventService {
       }
     } catch (e) {
       print("Error getEventDetails: $e");
+    }
+    return null;
+  }
+
+  Future<bool> createEvent(CreateEventRequest request) async {
+    try {
+      final url = Uri.parse(ApiConstants.events);
+      print("Creating Event at: $url");
+      print("Payload: ${request.toJson()}");
+
+      final response = await client.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: json.encode(request.toJson()),
+      );
+
+      print("Create Status: ${response.statusCode}");
+      print("Create Body: ${response.body}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return true;
+      } else {
+        // Handle Strapi Error format
+        final errorData = json.decode(response.body);
+        final msg = errorData['error']?['message'] ?? "Unknown error";
+        throw Exception(msg);
+      }
+    } catch (e) {
+      print("Error createEvent: $e");
+      rethrow;
+    }
+  }
+
+// 5. Upload Image
+  Future<int?> uploadImage(File imageFile) async {
+    try {
+      final url = Uri.parse("${ApiConstants.baseUrl}/api/upload");
+      print("Uploading Image to: $url");
+
+      // Create Multipart Request
+      final request = http.MultipartRequest('POST', url);
+
+      // Attach File
+      final file = await http.MultipartFile.fromPath('files', imageFile.path);
+      request.files.add(file);
+
+      // Send Request
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      print("Upload Status: ${response.statusCode}");
+
+      // --- SỬA DÒNG NÀY: Chấp nhận cả 200 và 201 ---
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Strapi returns an array of uploaded files
+        final List<dynamic> jsonResponse = json.decode(response.body);
+        if (jsonResponse.isNotEmpty) {
+          // Trả về ID của ảnh để dùng cho bước tạo sự kiện
+          return jsonResponse[0]['id'];
+        }
+      } else {
+        print("Upload Error: ${response.body}");
+      }
+    } catch (e) {
+      print("Error uploadImage: $e");
     }
     return null;
   }
