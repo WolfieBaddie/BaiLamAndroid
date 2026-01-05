@@ -62,8 +62,17 @@ class Event {
     }
 
     DateTime parsedDate = DateTime.now();
-    parsedDate = DateTime.tryParse(attributes['Date']) ?? DateTime.now();
+    var rawDate = attributes['Date'] ?? attributes['date'] ?? attributes['start'];
 
+    if (rawDate != null && rawDate is String) {
+      String serverTimeRaw = rawDate.replaceAll('Z', '');
+
+      DateTime? tempDate = DateTime.tryParse(serverTimeRaw);
+
+      if (tempDate != null) {
+        parsedDate = tempDate; // Không dùng .toLocal() hay .toUtc() gì cả
+      }
+    }
     return Event(
       id: json['id'] ?? 0,
       name: evtName,

@@ -54,15 +54,15 @@ class EventService {
         queryString += "&filters[Name][\$containsi]=$searchQuery";
       }
 
-      // 3. Filter Date
       if (selectedDate != null) {
-        // Tạo khoảng thời gian từ đầu ngày đến cuối ngày
-        final startOfDay = DateTime(selectedDate.year, selectedDate.month, selectedDate.day, 0, 0, 0);
-        final endOfDay = DateTime(selectedDate.year, selectedDate.month, selectedDate.day, 23, 59, 59);
+        // Tạo range ngày theo giờ UTC trực tiếp (Không dùng toUtc() từ giờ Local)
+        // Ví dụ: Chọn 21/1 -> Tìm từ 21/1 00:00Z đến 22/1 00:00Z
+        final startUTC = DateTime.utc(selectedDate.year, selectedDate.month, selectedDate.day);
+        final endUTC = startUTC.add(const Duration(days: 1)); // Sang đầu ngày hôm sau
 
-        // FIX LỖI 400: Dùng 'Date' viết hoa
-        queryString += "&filters[Date][\$gte]=${startOfDay.toIso8601String()}";
-        queryString += "&filters[Date][\$lte]=${endOfDay.toIso8601String()}";
+        // Query: Lớn hơn bằng 00:00 ngày đó VÀ Nhỏ hơn 00:00 ngày hôm sau
+        queryString += "&filters[Date][\$gte]=${startUTC.toIso8601String()}";
+        queryString += "&filters[Date][\$lt]=${endUTC.toIso8601String()}";
       }
 
       final url = Uri.parse("${ApiConstants.events}?$queryString");

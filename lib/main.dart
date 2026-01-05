@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:hello_world/screens/welcome_screen.dart'; // Bắt đầu từ màn hình chào
+import 'package:intl/date_symbol_data_local.dart'; // 1. Thêm import này
+import 'package:hello_world/screens/welcome_screen.dart';
 
-void main() {
+void main() async { // 2. Thêm async
+  // 3. Khởi tạo dữ liệu format cho tiếng Việt (hoặc tất cả locale)
+  await initializeDateFormatting('vi_VN', null);
+
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-
   const MyApp({super.key});
 
   @override
@@ -16,7 +19,7 @@ class MyApp extends StatelessWidget {
       title: 'Tech-Events Hub',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        scaffoldBackgroundColor: surfaceLight, // Màu nền tối cho hợp với Header
+        scaffoldBackgroundColor: surfaceLight,
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
